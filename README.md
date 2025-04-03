@@ -1,131 +1,160 @@
-# SIT737 - Task 5.1P: Dockerising a Node.js Web Application
+# 🚀 SIT737 Task 5.2D – Dockerized Node.js Microservice with Health Check
 
+This repository hosts the final working version of a Node.js-based microservice built and containerized for the **SIT737 – Cloud-Native Application Development** unit (Task 5.2D).
 
-This README explains everything I did for Task 5.1P of SIT737 – Cloud Native Application Development. The main goal of this task was to containerise a simple web application using Docker and Docker Compose, and also implement a health check to monitor its status.
-
----
-
-## 🔧 Tools and Setup
-
-To begin with, I ensured the following tools were installed and working:
-- Node.js and npm
-- Docker Desktop
-- Visual Studio Code
-- Git and GitHub
-
-I created a new folder named `sit737-app` on my desktop, and initialized a basic Node.js web application using Express.
+The microservice is designed with the following goals:
+- ✔️ Build a simple Express-based web server
+- 🐳 Containerize it using Docker
+- 🔁 Orchestrate it using Docker Compose
+- 💓 Integrate a health check endpoint
+- 📦 Prepare it for deployment to a cloud platform like Google Cloud Run
 
 ---
 
-## 🚀 Creating the Web Application
+## 📁 Project Structure
 
-I wrote a very simple Express.js application that responds with a message at the root (`/`) route.
+sit737-task-5-2d/ │ ├── index.js # Main Express server file ├── Dockerfile # Docker configuration ├── docker-compose.yml # Compose file with health check ├── package.json # Node.js metadata and dependencies ├── .gitignore # Files ignored by Git └── README.md # This documentation
 
-Here is the code I wrote in `index.js`:
 
-```js
-const express = require('express');
-const app = express();
-const PORT = 3000;
+---
+
+## 🧠 Learning Outcomes (Task 5.2D)
+
+- Understand and apply microservice containerization
+- Use Docker and Docker Compose to manage local development environments
+- Implement basic health check monitoring using Docker Compose
+- Gain familiarity with deploying microservices to platforms like Google Cloud Run
+
+---
+
+## 🔧 Technologies Used
+
+- **Node.js** (v18)
+- **Express.js** web framework
+- **Docker** for containerization
+- **Docker Compose** for orchestration
+- **cURL** for health checks
+- **GitHub** for version control
+
+---
+
+## 🌐 API Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET    | `/`  | Returns a success message indicating the app is running |
+| ALL    | `*`  | Catches all other requests with a 404 error message |
+
+---
+
+## 🧪 Health Check Overview
+
+Docker Compose provides the ability to monitor the health of services with a `healthcheck`. In this app:
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:8080"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+This setup:
+
+Tests the health of the app every 30 seconds
+
+Times out if no response in 10 seconds
+
+Fails if 3 consecutive checks are unsuccessful
+
+⚙️ Running the App
+1. 📦 Install Dependencies (Optional)
+If you want to run outside Docker:
+
+
+npm install
+node index.js
+2. 🐳 Run via Docker Compose
+
+docker-compose up --build
+Visit the app at http://localhost:3010
+
+📂 Important Files Explained
+🔸 index.js
+Main Express server that:
+
+Serves GET / route
+
+Handles 404 errors
+
+Listens on dynamic PORT (default: 8080)
+
+js
 
 app.get('/', (req, res) => {
-  res.send('Hello from Dockerized Node.js app!');
+  res.send('✅ Hello from Dockerized Node.js app running for SIT737 Task 5.2D!');
 });
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-Then I edited package.json to include a "start" script like this:
-
-json
-"scripts": {
-  "start": "node index.js"
-}
-After this, I tested the app locally using npm start to make sure it worked.
-
-Writing the Dockerfile
-To containerise the app, I created a Dockerfile with the following content:
-
+🔸 Dockerfile
 dockerfile
-FROM node:18
+
+FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-EXPOSE 3000
-CMD ["npm", "start"]
-This Dockerfile sets up Node, installs the app dependencies, and runs the app.
+EXPOSE 8080
+CMD ["node", "index.js"]
+🔸 docker-compose.yml
 
-Building and Running the Docker Image
-I built the Docker image using:
-
-
-docker build -t sit737-app .
-Then I ran the container like this:
-
-
-docker run -p 3004:3000 sit737-app
-I used port 3004 instead of 3000 because port 3000 was already in use. When I visited http://localhost:3004, I saw the message:
-
-Hello from Dockerized Node.js app!
-
-So the container was working correctly!
-
-Setting Up Docker Compose with Health Check
-Next, I wrote a docker-compose.yml file to simplify running the app and include a health check feature:
-
-yaml
 version: '3.8'
 
 services:
   web:
     build: .
     ports:
-      - "3004:3000"
+      - "3010:8080"
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 30s
       timeout: 10s
       retries: 3
-This file builds the image, maps the ports, and checks if the app is healthy using curl. If the health check fails, Docker will automatically restart the container.
+🔸 .gitignore
+gitignore
 
-I ran everything using:
+node_modules
+.env
+☁️ Deployment (Optional)
+To deploy this service on Google Cloud Run, first build and push the Docker image to Google Container Registry or Artifact Registry, then:
+
+gcloud run deploy sit737-app \
+  --image gcr.io/[PROJECT_ID]/sit737-app \
+  --platform managed \
+  --region australia-southeast1 \
+  --allow-unauthenticated
+📌 Future Enhancements
+Implement unit and integration testing (Jest or Mocha)
+
+Add environment configuration with .env
+
+Add logging and error tracking
+
+Containerize using multi-stage builds for optimization
+
+👨‍💻 Author
+Sarthak Dutta
+Master's Student, Deakin University
+📘 SIT737 – Cloud Native Application Development
+🔗 GitHub
+
+📃 License
+MIT License. You are free to use, modify, and distribute this software.
+
+🏁 Final Note
+This project demonstrates the full lifecycle of a microservice — from development to containerization and orchestration — as aligned with cloud-native best practices.
 
 
-docker-compose up --build
-
-Health Check Result:
-After adding the health check, Docker Compose automatically monitored the application. If I force stopped the app, Docker would detect the failed state and restart it. This made the system more resilient.
-
-GitHub Repository :
-Finally, I pushed all the code to GitHub in a public repository named: 👉 sit737-2025-prac5p
-
-GitHub URL :
-https://github.com/sarthak022602/sit737-2025-prac5p
-
-I used these Git commands:
+---
 
 
-git init
-git add .
-git commit -m "Dockerised Node.js app with health check"
-git branch -M main
-git remote add origin https://github.com/sarthak022602/sit737-2025-prac5p.git
-git push -u origin main
 
-Summary
+    
 
-To summarise:
-
-I created a simple Express app
-
-Dockerised it using a Dockerfile
-
-Built and tested the container on port 3004
-
-Created a Docker Compose file with health checks
-
-Verified automatic restarts on health check failure
-
-Uploaded everything to GitHub with clear structure
